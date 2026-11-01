@@ -3,7 +3,8 @@
 <h1 align="center">WebOS Chromium</h1>
 
 <p align="center">The real Chromium browser, with the full Chrome interface, running natively on LG webOS TVs.<br>
-GPU rendering and hardware video decoding. No root needed.</p>
+GPU rendering and hardware video decoding. No root needed.<br>
+<b>Requires webOS 9 (webOS 24) or newer.</b></p>
 
 ---
 
@@ -92,6 +93,23 @@ Your profile (bookmarks, logins, extensions) is stored in the app's own folder a
 
 ## Supported TVs
 
+> **Requires webOS 9 (webOS 24) or newer.**
+
+| webOS version | Typical TVs | Works? |
+|---|---|---|
+| webOS 9 / 24 and newer | 2024 and newer models, and older models LG has updated to webOS 24 or newer | ✅ Yes |
+| webOS 8 / 23 and older (including webOS 4, 5, 6, 7) | Most 2023 and older models | ❌ Not yet |
+
+**How to check:** Settings → Support → TV Information → **webOS TV Version**. Don't use the "Software version"
+(for example `05.40.97`); that is the firmware number, not the webOS version.
+
+**Why older TVs don't work:** this Chromium needs glibc 2.35, the system C library LG ships from webOS 9 on.
+webOS 5-8 have glibc 2.28-2.31, and webOS 4 and older 2.24 or less, so the TV can't load the browser. On those TVs
+the app shows a short message and closes. Support for webOS 5-8 may come later; it needs a separate build and
+testers with those TVs.
+
+Tested so far:
+
 | | Tested |
 |---|---|
 | TV | LG 43UR7500PSC |
@@ -99,8 +117,8 @@ Your profile (bookmarks, logins, extensions) is stored in the app's own folder a
 | CPU | 32-bit ARMv7, 2x Cortex-A75 + 2x Cortex-A55 |
 | GPU | PowerVR BXE-4-32 |
 
-Other LG TVs on webOS 10 with a 32-bit ARM userland will probably work but haven't been tested yet. Please report
-your TV with the **TV compatibility** issue template, whether it works or not.
+If you try it on another TV with webOS 9 or newer, please report it with the **TV compatibility** issue template,
+whether it works or not.
 
 ## Using it with the remote
 

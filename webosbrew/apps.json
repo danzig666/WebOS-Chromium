@@ -25,7 +25,7 @@
         },
         "ipkSize": 105083880
       },
-      "shortDescription": "Native Chromium browser with GPU rendering and hardware video",
+      "shortDescription": "Native Chromium with GPU rendering and hardware video. Needs webOS 9+",
       "fullDescriptionUrl": "https://raw.githubusercontent.com/sarahahzub/WebOS-Chromium/main/webosbrew/description.html"
     }
   ]
