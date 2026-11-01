@@ -1,0 +1,38 @@
+name: Validate
+
+# Checks the Homebrew Channel files on every push and pull request that touches them.
+
+on:
+  push:
+    paths: ['webosbrew/**', '.github/workflows/validate.yml']
+  pull_request:
+    paths: ['webosbrew/**', '.github/workflows/validate.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the JSON files
+        run: |
+          set -euo pipefail
+          m=webosbrew/org.nativechromium.browser.manifest.json
+          r=webosbrew/apps.json
+          jq empty "$m" "$r"
+          id="$(jq -r .id "$m")"
+          # The standalone manifest and the one inside apps.json must be identical.
+          if ! diff <(jq -S . "$m") <(jq -S --arg id "$id" '.packages[] | select(.id == $id) | .manifest' "$r"); then
+            echo "::error::$m and the manifest in $r differ"
+            exit 1
+          fi
+          # Required fields, and the IPK file name must match the version.
+          jq -e '.version and .ipkUrl and .ipkSize and .ipkHash.sha256' "$m" > /dev/null
+          v="$(jq -r .version "$m")"
+          case "$(jq -r .ipkUrl "$m")" in
+            */v"$v"/"${id}_${v}_arm.ipk") ;;
+            *) echo "::error::ipkUrl does not point at v$v/${id}_${v}_arm.ipk"; exit 1 ;;
+          esac
+          echo "OK: $id $v"
