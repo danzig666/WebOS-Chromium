@@ -10,8 +10,19 @@ https://raw.githubusercontent.com/sarahahzub/WebOS-Chromium/main/webosbrew/apps.
 `org.nativechromium.browser.manifest.json` is the same manifest on its own. Attach it to each GitHub release so a
 listing in the official repository can point at `releases/latest/download/org.nativechromium.browser.manifest.json`.
 
-For every release, update `version`, `ipkUrl`, `ipkSize` and `ipkHash.sha256` in both files. Homebrew Channel checks
-the hash, so they must describe the exact IPK attached to the release:
+## Releasing
+
+The **Release** workflow (`.github/workflows/release.yml`) keeps both files up to date:
+
+1. Create a GitHub release with the tag `v<version>` and attach `org.nativechromium.browser_<version>_arm.ipk`.
+2. Publish it (not as a pre-release). The workflow checks that the IPK's package id and version match the tag,
+   writes `version`, `ipkUrl`, `ipkSize` and `ipkHash.sha256` into both files, commits them to the default branch,
+   and attaches the manifest and a `SHA256SUMS` file to the release.
+
+To re-run it for an existing release, use **Actions → Release → Run workflow** and enter the tag.
+
+Homebrew Channel checks the hash, so the files must describe the exact IPK attached to the release. To update them
+by hand instead:
 
 ```
 stat -c %s org.nativechromium.browser_<version>_arm.ipk

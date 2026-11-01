@@ -1,0 +1,110 @@
+name: Release
+
+# Runs when a GitHub release is published (not drafts, not pre-releases), or by hand for an existing tag.
+#
+# The release must have the IPK attached as org.nativechromium.browser_<version>_arm.ipk, with the tag v<version>.
+# This workflow then:
+#   1. downloads the IPK and checks it (valid IPK, package id and version match the tag);
+#   2. writes version, ipkUrl, ipkSize and ipkHash.sha256 into webosbrew/apps.json and
+#      webosbrew/org.nativechromium.browser.manifest.json, and commits them to the default branch;
+#   3. attaches the updated manifest and a SHA256SUMS file to the release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to process (for example v0.0.43)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+      MANIFEST: webosbrew/org.nativechromium.browser.manifest.json
+      REPO_JSON: webosbrew/apps.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Download the IPK from the release
+        run: |
+          set -euo pipefail
+          case "$TAG" in
+            v[0-9]*) ;;
+            *) echo "::error::Tag '$TAG' must look like v<version>, for example v0.0.43"; exit 1 ;;
+          esac
+          VERSION="${TAG#v}"
+          APP_ID="$(jq -r .id "$MANIFEST")"
+          IPK="${APP_ID}_${VERSION}_arm.ipk"
+          mkdir -p dist
+          if ! gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$IPK" --dir dist; then
+            echo "::error::Release $TAG has no asset named $IPK. Attach the IPK with exactly that name."
+            exit 1
+          fi
+          {
+            echo "VERSION=$VERSION"
+            echo "APP_ID=$APP_ID"
+            echo "IPK=$IPK"
+          } >> "$GITHUB_ENV"
+
+      - name: Check the IPK
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          (cd "$work" && ar x "$GITHUB_WORKSPACE/dist/$IPK")
+          for f in debian-binary control.tar.gz data.tar.gz; do
+            [ -f "$work/$f" ] || { echo "::error::$IPK is not a valid IPK (missing $f)"; exit 1; }
+          done
+          tar -xzf "$work/control.tar.gz" -C "$work" ./control 2>/dev/null || tar -xzf "$work/control.tar.gz" -C "$work" control
+          pkg="$(sed -n 's/^Package: *//p' "$work/control")"
+          ver="$(sed -n 's/^Version: *//p' "$work/control")"
+          echo "IPK control: Package=$pkg Version=$ver"
+          [ "$pkg" = "$APP_ID" ] || { echo "::error::IPK package is '$pkg', expected '$APP_ID'"; exit 1; }
+          [ "$ver" = "$VERSION" ] || { echo "::error::IPK version is '$ver', but the tag says '$VERSION'"; exit 1; }
+
+      - name: Update the Homebrew Channel manifests
+        run: |
+          set -euo pipefail
+          size="$(stat -c %s "dist/$IPK")"
+          sha="$(sha256sum "dist/$IPK" | cut -d' ' -f1)"
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$IPK"
+          echo "size=$size sha256=$sha"
+          update='.version = $v | .ipkUrl = $u | .ipkSize = $s | .ipkHash.sha256 = $h'
+          jq --arg v "$VERSION" --arg u "$url" --argjson s "$size" --arg h "$sha" "$update" \
+            "$MANIFEST" > "$MANIFEST.tmp" && mv "$MANIFEST.tmp" "$MANIFEST"
+          jq --arg id "$APP_ID" --arg v "$VERSION" --arg u "$url" --argjson s "$size" --arg h "$sha" \
+            "(.packages[] | select(.id == \$id) | .manifest) |= ($update)" \
+            "$REPO_JSON" > "$REPO_JSON.tmp" && mv "$REPO_JSON.tmp" "$REPO_JSON"
+          (cd dist && sha256sum "$IPK" > SHA256SUMS)
+          git diff --stat
+
+      - name: Commit the manifests
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- "$MANIFEST" "$REPO_JSON"; then
+            echo "Manifests already describe $TAG; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$MANIFEST" "$REPO_JSON"
+          git commit -m "Homebrew Channel: $APP_ID $VERSION"
+          git push origin "HEAD:${{ github.event.repository.default_branch }}"
+
+      - name: Attach the manifest and checksums to the release
+        run: |
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "$MANIFEST" dist/SHA256SUMS
