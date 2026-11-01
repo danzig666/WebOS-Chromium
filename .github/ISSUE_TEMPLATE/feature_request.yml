@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest an improvement for WebOS Chromium
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe what you want to do on the TV and what gets in the way today
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How should it work?
+      description: For example which remote key, which menu, or which setting
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else

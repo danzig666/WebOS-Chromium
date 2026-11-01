@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation help (Homebrew Channel)
+    url: https://github.com/webosbrew/webos-homebrew-channel
+    about: How to install Homebrew Channel on an LG TV
+  - name: LG Developer Mode
+    url: https://webostv.developer.lge.com/develop/getting-started/developer-mode-app
+    about: How to enable Developer Mode and use ares-install

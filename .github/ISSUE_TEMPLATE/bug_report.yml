@@ -1,0 +1,88 @@
+name: Bug report
+description: Something doesn't work or behaves wrongly in WebOS Chromium
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting. Please fill in what you can; the TV model and versions help the most.
+  - type: input
+    id: tv_model
+    attributes:
+      label: TV model
+      description: Settings → Support → TV Information (for example LG 43UR7500PSC)
+    validations:
+      required: true
+  - type: input
+    id: webos_version
+    attributes:
+      label: webOS version
+      description: Settings → Support → TV Information → webOS TV version (for example 10.3.1)
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: WebOS Chromium version
+      description: Shown in Homebrew Channel, or in the 3-dot menu → About Chromium
+      placeholder: 0.0.42
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: How did you install it?
+      options:
+        - Homebrew Channel
+        - ares-install (Developer Mode)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Video playback
+        - Remote control / navigation
+        - On-screen keyboard
+        - Page display / rendering
+        - Menus and popups
+        - Crash or freeze
+        - Launch / startup
+        - Memory / slowness
+        - Extensions
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Which page, which keys you pressed, in order
+      placeholder: |
+        1. Open https://...
+        2. Press DOWN twice, then OK
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+      description: Photos or videos of the screen help a lot
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: |
+        If you have SSH access to the TV, attach /tmp/org.nativechromium.browser/browser.log and
+        /tmp/org.nativechromium.browser/media.log right after the problem (they are cleared on reboot).
+      render: text

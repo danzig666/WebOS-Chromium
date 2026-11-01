@@ -1,0 +1,63 @@
+name: TV compatibility report
+description: Tell us whether WebOS Chromium works on your TV (working reports are welcome too)
+labels: [compatibility]
+body:
+  - type: input
+    id: tv_model
+    attributes:
+      label: TV model
+      description: Settings → Support → TV Information
+    validations:
+      required: true
+  - type: input
+    id: webos_version
+    attributes:
+      label: webOS version
+      placeholder: "10.3.1"
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: WebOS Chromium version
+      placeholder: 0.0.42
+    validations:
+      required: true
+  - type: dropdown
+    id: starts
+    attributes:
+      label: Does the browser start and show the New Tab page?
+      options:
+        - "Yes"
+        - "No, it closes or shows a black screen"
+        - "No, it doesn't install"
+    validations:
+      required: true
+  - type: dropdown
+    id: video
+    attributes:
+      label: Does YouTube video play smoothly?
+      description: Open any YouTube video in the browser
+      options:
+        - "Yes, smooth"
+        - "Plays, but stutters or drops frames"
+        - "Sound but no picture"
+        - "Doesn't play"
+        - "Didn't test"
+    validations:
+      required: true
+  - type: dropdown
+    id: remote
+    attributes:
+      label: Does the remote work (arrows, OK, Back, 3-dot menu)?
+      options:
+        - "Yes"
+        - "Partly"
+        - "No"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Anything that didn't work, and the TV's processor if you know it (for example from /etc/prefs/properties/machineName)
